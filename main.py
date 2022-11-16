@@ -12,7 +12,6 @@ HEADERS = {
 }
 
 
-# TODO 1: Возможность добавлять время в сегодняшний день в зависимости от ввода пользователя
 def post_progress_pixel(user_date: str = dt.datetime.today().strftime('%Y%m%d')):
     """Asks the value of the user and changes the progress by user date"""
     correct_input = False
@@ -32,14 +31,12 @@ def post_progress_pixel(user_date: str = dt.datetime.today().strftime('%Y%m%d'))
     response = requests.post(f'{PIXEL_ENDPOINT}', headers=HEADERS, json=new_score_params)
 
 
-# TODO 2: Просмотр прогресса заданного дня
 def get_progress_pixel(user_date: str):
     """Returns the pixel value of the given day"""
     response = requests.get(f'{PIXEL_ENDPOINT}/{user_date}', headers=HEADERS)
     return response.json()['quantity']
 
 
-# TODO 3: Изменение прогресса на выбор: сегодня, вчера, позавчера
 def change_progress_pixel():
 
     today = dt.datetime.today().strftime('%Y%m%d')
