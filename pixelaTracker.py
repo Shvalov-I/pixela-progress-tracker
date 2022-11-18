@@ -33,8 +33,7 @@ class PixelaUser:
         else:
             raise AttributeError(f'User "{self.USERNAME}" do not exists')
 
-    def create_user(self, username: str):
-        self.USERNAME = username
+    def create_user(self):
         if self.is_exists():
             self.TOKEN = str(uuid.uuid4())
             with Session(engine) as session, session.begin():
@@ -44,6 +43,13 @@ class PixelaUser:
         else:
             raise AttributeError(f'User "{self.USERNAME}" already exists')
 
+    def delete_user(self):
+        if self.is_exists():
+            with Session(engine) as session, session.begin():
+                deleted_user = session.query(Users).filter(Users.username == self.USERNAME).first()
+                session.delete(deleted_user)
+        else:
+            raise AttributeError(f'User "{self.USERNAME}" do not exists')
 
 
 
