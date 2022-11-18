@@ -40,6 +40,15 @@ class PixelaUser:
                 new_user = Users(username=self.USERNAME, token=self.TOKEN)
                 session.add(new_user)
                 session.commit()
+
+                new_user_params = {
+                    "token": self.TOKEN,
+                    "username": self.USERNAME,
+                    "agreeTermsOfService": "yes",
+                    "notMinor": "yes",
+                }
+                response = requests.post(url=self.PIXEL_ENDPOINT, params=new_user_params)
+                print(response.json())
         else:
             raise AttributeError(f'User "{self.USERNAME}" already exists')
 
