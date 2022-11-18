@@ -101,7 +101,18 @@ class PixelaGraph:
                 new_graph = Graphs(graph_name=self.GRAPH_NAME, user_id=user.id)
                 session.add(new_graph)
                 session.commit()
+        else:
+            raise AttributeError(f'Graph "{self.GRAPH_NAME}" already exists')
 
+    def delete_graph(self):
+        if self.is_exists():
+            with Session(engine) as session, session.begin():
+                user = session.query(Users).filter(Users.username == self.USERNAME).first()
+                deleted_graph = Graphs(graph_name=self.GRAPH_NAME, user_id=user.id)
+                session.delete(deleted_graph)
+                session.commit()
+        else:
+            raise AttributeError(f'Graph "{self.GRAPH_NAME}" do not exists')
 
     # def post_progress_pixel(user_date: str = dt.datetime.today().strftime('%Y%m%d')):
     #     """Asks the value of the user and changes the progress by user date"""
