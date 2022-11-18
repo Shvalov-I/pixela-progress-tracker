@@ -10,8 +10,8 @@ class PixelaUser:
     """An object describing the work with the user"""
     PIXEL_ENDPOINT = f"https://pixe.la/v1/users"
 
-    def __init__(self):
-        self.USERNAME = None
+    def __init__(self, username: str):
+        self.USERNAME = username
         self.TOKEN = None
 
     def create_user(self, username: str):
@@ -26,7 +26,8 @@ class PixelaUser:
             else:
                 raise AttributeError(f'User "{self.USERNAME}" already exists')
 
-
+    def is_exists(self):
+        pass
 
 
 # class PixelaGraph:
