@@ -7,7 +7,7 @@ from models import Session, Users, Graphs, engine
 
 
 class PixelaUser:
-    """An object describing the work with the user"""
+    """Object for working with the user"""
     PIXEL_ENDPOINT = f"https://pixe.la/v1/users"
 
     def __init__(self, username: str):
@@ -73,9 +73,13 @@ class PixelaUser:
             raise AttributeError(f'User "{self.USERNAME}" do not exists')
 
 
-class PixelaGraph(PixelaUser):
-    def __init__(self, username: str, graph_name: str):
-        super().__init__(username)
+class PixelaGraph:
+    """Object for working with graphs"""
+    PIXEL_ENDPOINT = f"https://pixe.la/v1/users"
+
+    def __init__(self, username: str, token: str, graph_name: str):
+        self.USERNAME = username
+        self.TOKEN = token
         self.GRAPH_NAME = graph_name
 
     # def post_progress_pixel(user_date: str = dt.datetime.today().strftime('%Y%m%d')):
