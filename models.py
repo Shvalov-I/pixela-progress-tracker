@@ -9,7 +9,7 @@ class Users(Base):
     __tablename__ = 'pixela_users'
     id = Column(Integer, primary_key=True)
     username = Column(String(30), unique=True)
-    token = Column(String(50), unique=True)
+    token = Column(String(50))
     graphs = relationship("Graphs")
 
     def __repr__(self):

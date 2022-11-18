@@ -1,14 +1,31 @@
+import sqlite3
+import sqlalchemy.exc
 import requests
 import datetime as dt
-import os
+import uuid
+from models import Session, Users, Graphs, engine
 
 
 class PixelaUser:
-    def __init__(self):
-        pass
+    """An object describing the work with the user"""
+    PIXEL_ENDPOINT = f"https://pixe.la/v1/users"
 
-    def create_user(self):
-        pass
+    def __init__(self):
+        self.USERNAME = None
+        self.TOKEN = None
+
+    def create_user(self, username: str):
+        self.USERNAME = username
+        self.TOKEN = str(uuid.uuid4())
+        with Session(engine) as session, session.begin():
+            # Проверка есть ли пользователь с таким именем в базе данных
+            if not session.query(Users).filter(Users.username == self.USERNAME).first():
+                new_user = Users(username=self.USERNAME, token=self.TOKEN)
+                session.add(new_user)
+                session.commit()
+            else:
+                raise AttributeError(f'User "{self.USERNAME}" already exists')
+
 
 
 
