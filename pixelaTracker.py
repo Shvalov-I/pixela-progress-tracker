@@ -12,7 +12,10 @@ class PixelaUser:
 
     def __init__(self, username: str):
         self.USERNAME = username
-        self.TOKEN = None
+        if self.is_exists():
+            self.TOKEN = self.get_token()
+        else:
+            self.TOKEN = None
 
     def is_exists(self):
         with Session(engine) as session, session.begin():
