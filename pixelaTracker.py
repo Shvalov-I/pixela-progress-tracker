@@ -17,7 +17,7 @@ class PixelaUser:
     def is_exists(self):
         with Session(engine) as session, session.begin():
             # Проверка есть ли пользователь с таким именем в базе данных
-            if not session.query(Users).filter(Users.username == self.USERNAME).first():
+            if session.query(Users).filter(Users.username == self.USERNAME).first():
                 return True
             else:
                 return False
