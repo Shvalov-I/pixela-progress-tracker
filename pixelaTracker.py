@@ -14,18 +14,6 @@ class PixelaUser:
         self.USERNAME = username
         self.TOKEN = None
 
-    def create_user(self, username: str):
-        self.USERNAME = username
-        self.TOKEN = str(uuid.uuid4())
-        with Session(engine) as session, session.begin():
-            # Проверка есть ли пользователь с таким именем в базе данных
-            if not session.query(Users).filter(Users.username == self.USERNAME).first():
-                new_user = Users(username=self.USERNAME, token=self.TOKEN)
-                session.add(new_user)
-                session.commit()
-            else:
-                raise AttributeError(f'User "{self.USERNAME}" already exists')
-
     def is_exists(self):
         with Session(engine) as session, session.begin():
             # Проверка есть ли пользователь с таким именем в базе данных
@@ -33,6 +21,19 @@ class PixelaUser:
                 return True
             else:
                 return False
+
+    def create_user(self, username: str):
+        self.USERNAME = username
+        if self.is_exists():
+            self.TOKEN = str(uuid.uuid4())
+            with Session(engine) as session, session.begin():
+                new_user = Users(username=self.USERNAME, token=self.TOKEN)
+                session.add(new_user)
+                session.commit()
+        else:
+            raise AttributeError(f'User "{self.USERNAME}" already exists')
+
+
 
 
 # class PixelaGraph:
