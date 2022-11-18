@@ -27,7 +27,12 @@ class PixelaUser:
                 raise AttributeError(f'User "{self.USERNAME}" already exists')
 
     def is_exists(self):
-        pass
+        with Session(engine) as session, session.begin():
+            # Проверка есть ли пользователь с таким именем в базе данных
+            if not session.query(Users).filter(Users.username == self.USERNAME).first():
+                return True
+            else:
+                return False
 
 
 # class PixelaGraph:
