@@ -81,16 +81,27 @@ class PixelaGraph:
         self.USERNAME = username
         self.TOKEN = token
         self.GRAPH_NAME = graph_name
+        self.HEADERS = {
+            "X-USER-TOKEN": self.TOKEN,
+        }
 
     def is_exists(self):
         with Session(engine) as session, session.begin():
             # Проверка есть ли у заданного пользователя график с таким именем в базе данных
-            if session.query(Users).filter(Users.graphs == self.GRAPH_NAME).first():
+            user = session.query(Users).filter(Users.username == self.USERNAME).first()
+            if self.GRAPH_NAME in [graph.graph_name for graph in user.graphs]:
                 return True
             else:
                 return False
 
     def create_graph(self):
+        if not self.is_exists():
+            with Session(engine) as session, session.begin():
+                user = session.query(Users).filter(Users.username == self.USERNAME).first()
+                new_graph = Graphs(graph_name=self.GRAPH_NAME, user_id=user.id)
+                session.add(new_graph)
+                session.commit()
+
 
     # def post_progress_pixel(user_date: str = dt.datetime.today().strftime('%Y%m%d')):
     #     """Asks the value of the user and changes the progress by user date"""
