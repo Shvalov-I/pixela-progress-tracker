@@ -82,6 +82,16 @@ class PixelaGraph:
         self.TOKEN = token
         self.GRAPH_NAME = graph_name
 
+    def is_exists(self):
+        with Session(engine) as session, session.begin():
+            # Проверка есть ли у заданного пользователя график с таким именем в базе данных
+            if session.query(Users).filter(Users.graphs == self.GRAPH_NAME).first():
+                return True
+            else:
+                return False
+
+    def create_graph(self):
+
     # def post_progress_pixel(user_date: str = dt.datetime.today().strftime('%Y%m%d')):
     #     """Asks the value of the user and changes the progress by user date"""
     #     correct_input = False
