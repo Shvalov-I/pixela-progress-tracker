@@ -22,6 +22,14 @@ class PixelaUser:
             else:
                 return False
 
+    def get_token(self):
+        if self.is_exists():
+            with Session(engine) as session, session.begin():
+                user = session.query(Users).filter(Users.username == self.USERNAME).first()
+                return user.token
+        else:
+            raise AttributeError(f'User "{self.USERNAME}" do not exists')
+
     def create_user(self, username: str):
         self.USERNAME = username
         if self.is_exists():
