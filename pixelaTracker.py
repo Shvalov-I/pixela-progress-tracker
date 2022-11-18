@@ -53,14 +53,24 @@ class PixelaUser:
         else:
             raise AttributeError(f'User "{self.USERNAME}" already exists')
 
+    def delete_user(self):
+        if self.is_exists():
+            with Session(engine) as session, session.begin():
+                deleted_user = session.query(Users).filter(Users.username == self.USERNAME).first()
+                session.delete(deleted_user)
 
-def delete_user(self):
-    if self.is_exists():
-        with Session(engine) as session, session.begin():
-            deleted_user = session.query(Users).filter(Users.username == self.USERNAME).first()
-            session.delete(deleted_user)
-    else:
-        raise AttributeError(f'User "{self.USERNAME}" do not exists')
+            headers = {
+                "X-USER-TOKEN": self.TOKEN,
+            }
+            # Так как в Pixel Api 25% запросов не обрабатываются, если ты не подписчик на патреоне,
+            # Поэтому мы повторяем запрос пока он не будет успешный
+            success = False
+            while not success:
+                response = requests.delete(url=f"{self.PIXEL_ENDPOINT}/{self.USERNAME}", headers=headers)
+                print(response.json())
+                success = response.json()['isSuccess']
+        else:
+            raise AttributeError(f'User "{self.USERNAME}" do not exists')
 
 # class PixelaGraph:
 #     USERNAME = os.environ['PIXELA_USERNAME']
