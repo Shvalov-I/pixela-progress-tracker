@@ -34,33 +34,33 @@ class PixelaUser:
             raise AttributeError(f'User "{self.USERNAME}" do not exists')
 
     def create_user(self):
-        if self.is_exists():
+        if not self.is_exists():
             self.TOKEN = str(uuid.uuid4())
             with Session(engine) as session, session.begin():
                 new_user = Users(username=self.USERNAME, token=self.TOKEN)
                 session.add(new_user)
                 session.commit()
 
-                new_user_params = {
-                    "token": self.TOKEN,
-                    "username": self.USERNAME,
-                    "agreeTermsOfService": "yes",
-                    "notMinor": "yes",
-                }
-                response = requests.post(url=self.PIXEL_ENDPOINT, params=new_user_params)
-                print(response.json())
+            new_user_params = {
+                "token": self.TOKEN,
+                "username": self.USERNAME,
+                "agreeTermsOfService": "yes",
+                "notMinor": "yes",
+            }
+
+            response = requests.post(url=self.PIXEL_ENDPOINT, json=new_user_params)
+            print(response.json())
         else:
             raise AttributeError(f'User "{self.USERNAME}" already exists')
 
-    def delete_user(self):
-        if self.is_exists():
-            with Session(engine) as session, session.begin():
-                deleted_user = session.query(Users).filter(Users.username == self.USERNAME).first()
-                session.delete(deleted_user)
-        else:
-            raise AttributeError(f'User "{self.USERNAME}" do not exists')
 
-
+def delete_user(self):
+    if self.is_exists():
+        with Session(engine) as session, session.begin():
+            deleted_user = session.query(Users).filter(Users.username == self.USERNAME).first()
+            session.delete(deleted_user)
+    else:
+        raise AttributeError(f'User "{self.USERNAME}" do not exists')
 
 # class PixelaGraph:
 #     USERNAME = os.environ['PIXELA_USERNAME']
