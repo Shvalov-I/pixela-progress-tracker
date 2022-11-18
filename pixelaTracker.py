@@ -94,13 +94,41 @@ class PixelaGraph:
             else:
                 return False
 
-    def create_graph(self):
+    def create_graph(self, unit:str, type_of_graph: str = 'int', color: str = 'shibafu', time_zone: str = 'Asia/Novosibirsk'):
+        """Create new Pixela graph
+        :param unit:
+        It is a unit of the quantity recorded in the pixelation graph.
+        Ex. commit, kilogram, calory.;
+        :param type_of_graph:
+        It is the type of quantity to be handled in the graph.
+        Only int or float are supported.;
+        :param color:
+        Defines the display color of the pixel in the pixelation graph.
+        shibafu (green), momiji (red), sora (blue), ichou (yellow),
+        ajisai (purple) and kuro (black) are supported as color kind.;
+        :param time_zone:
+        Specify the time zone for this graph as TZ database name (not Time zone abbreviation).
+        If not specified, it is treated as UTC.
+        """
         if not self.is_exists():
             with Session(engine) as session, session.begin():
                 user = session.query(Users).filter(Users.username == self.USERNAME).first()
                 new_graph = Graphs(graph_name=self.GRAPH_NAME, user_id=user.id)
                 session.add(new_graph)
                 session.commit()
+
+                new_graph_params = {
+                    "id": self.GRAPH_NAME,
+                    "name": self.GRAPH_NAME,
+                    "unit": unit,
+                    "type": type_of_graph,
+                    "color": color,
+                    "timezone": time_zone,
+                }
+                response = requests.post(url=f"{self.PIXEL_ENDPOINT}/{self.USERNAME}/graphs",
+                                         json=new_graph_params,
+                                         headers=self.HEADERS)
+                print(response.json())
         else:
             raise AttributeError(f'Graph "{self.GRAPH_NAME}" already exists')
 
