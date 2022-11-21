@@ -18,6 +18,10 @@ class PixelaUser:
             self.TOKEN = None
 
     def is_exists(self):
+        """
+        Checking if the user exists
+        :return:
+        """
         with Session(engine) as session, session.begin():
             # Проверка есть ли пользователь с таким именем в базе данных
             if session.query(Users).filter(Users.username == self.USERNAME).first():
@@ -26,6 +30,10 @@ class PixelaUser:
                 return False
 
     def get_token(self):
+        """
+        Returns the user's token or throws an error if the user does not exist.
+        :return:
+        """
         if self.is_exists():
             with Session(engine) as session, session.begin():
                 user = session.query(Users).filter(Users.username == self.USERNAME).first()
@@ -34,6 +42,10 @@ class PixelaUser:
             raise AttributeError(f'User "{self.USERNAME}" do not exists')
 
     def create_user(self):
+        """
+        Creates a new user or throws an error if such a user already exists
+        :return:
+        """
         if not self.is_exists():
             self.TOKEN = str(uuid.uuid4())
             with Session(engine) as session, session.begin():
@@ -54,6 +66,10 @@ class PixelaUser:
             raise AttributeError(f'User "{self.USERNAME}" already exists')
 
     def delete_user(self):
+        """
+        Deletes the user or throws an error if the user does not exist
+        :return:
+        """
         if self.is_exists():
             with Session(engine) as session, session.begin():
                 deleted_user = session.query(Users).filter(Users.username == self.USERNAME).first()
@@ -86,6 +102,10 @@ class PixelaGraph:
         }
 
     def is_exists(self):
+        """
+        Checking if the graph exists
+        :return:
+        """
         with Session(engine) as session, session.begin():
             # Проверка есть ли у заданного пользователя график с таким именем в базе данных
             user = session.query(Users).filter(Users.username == self.USERNAME).first()
@@ -133,6 +153,10 @@ class PixelaGraph:
             raise AttributeError(f'Graph "{self.GRAPH_NAME}" already exists')
 
     def delete_graph(self):
+        """
+        Deletes the graph or throws an error if the user does not exist
+        :return:
+        """
         if self.is_exists():
             with Session(engine) as session, session.begin():
                 user = session.query(Users).filter(Users.username == self.USERNAME).first()
