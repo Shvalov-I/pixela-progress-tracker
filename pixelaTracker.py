@@ -6,7 +6,7 @@ import uuid
 from models import Session, Users, Graphs, engine
 
 
-def success_request(request):
+def success_request(request: requests.Request):
     """
     Makes requests until it succeeds
     :param request:
@@ -20,7 +20,9 @@ def success_request(request):
             prepare_req = s.prepare_request(request)
             response = s.send(prepare_req)
             print(response.json())
-            success = response.json()['isSuccess']
+            if 'Please retry this request.' not in response.json()['message']:
+                success = True
+
 
 class PixelaUser:
     """Object for working with the user"""
@@ -198,17 +200,19 @@ class PixelaGraph:
         else:
             raise AttributeError(f'Graph "{self.GRAPH_NAME}" do not exists')
 
-    def change_progress(self, user_progress: float, user_date: str = dt.datetime.today().strftime('%Y%m%d')):
+    def change_progress(self, user_progress: int, user_date: str = dt.datetime.today().strftime('%Y%m%d')):
         """
         Changes the progress in the pixel graph by user date
         """
         new_score_params = {
             'date': user_date,
-            'quantity': user_progress,
+            'quantity': str(user_progress),
         }
-        response = requests.post(url=f"{self.PIXEL_ENDPOINT}/{self.USERNAME}/graphs/{self.GRAPH_NAME}",
-                                 headers=self.HEADERS, json=new_score_params)
-        print(response.json())
+        req = requests.Request(method="POST", url=f"{self.PIXEL_ENDPOINT}/{self.USERNAME}/graphs/{self.GRAPH_NAME}",
+                               headers=self.HEADERS, json=new_score_params)
+        # response = requests.post(url=f"{self.PIXEL_ENDPOINT}/{self.USERNAME}/graphs/{self.GRAPH_NAME}",
+        #                          headers=self.HEADERS, json=new_score_params)
+        success_request(req)
 
     def get_progress(self, user_date: str):
         """Returns the pixel value of the given day"""
