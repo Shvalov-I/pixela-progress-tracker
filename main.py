@@ -1,15 +1,5 @@
-import requests
-import datetime as dt
-import os
+from pixelaTracker import *
 
-USERNAME = os.environ['PIXELA_USERNAME']
-TOKEN = os.environ['PIXELA_TOKEN']
-
-PIXEL_ENDPOINT = f"https://pixe.la/v1/users/{USERNAME}/graphs/graph1"
-
-HEADERS = {
-    "X-USER-TOKEN": TOKEN,
-}
-
-
+user = PixelaUser('cjoker1')
+new_graph = PixelaGraph(user.USERNAME, user.TOKEN, 'graph1')
 

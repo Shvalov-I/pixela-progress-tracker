@@ -1,5 +1,3 @@
-import sqlite3
-import sqlalchemy.exc
 import requests
 import datetime as dt
 import uuid
@@ -19,8 +17,11 @@ def success_request(request: requests.Request) -> requests.models.Response:
         with requests.Session() as session:
             prepare_req = session.prepare_request(request)
             response = session.send(prepare_req)
-            print(response.json())
-            if 'Please retry this request.' not in response.json()['message']:
+            # Если в ответе нет просьбы повторить запрос ещё раз, значит запрос успешный
+            try:
+                if 'Please retry this request.' not in response.json()['message']:
+                    success = True
+            except KeyError:
                 success = True
     return response
 
@@ -199,7 +200,7 @@ class PixelaGraph:
                                headers=self.HEADERS, json=new_score_params)
         success_request(req)
 
-    def get_progress(self, user_date: str):
+    def get_progress(self, user_date: str = dt.datetime.today().strftime('%Y%m%d')):
         """Returns the pixel value of the given day"""
         req = requests.Request(method="GET",
                                url=f"{self.PIXEL_ENDPOINT}/{self.USERNAME}/graphs/{self.GRAPH_NAME}/{user_date}",
