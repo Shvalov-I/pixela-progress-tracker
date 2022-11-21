@@ -5,8 +5,22 @@ import datetime as dt
 import uuid
 from models import Session, Users, Graphs, engine
 
+
 def success_request(request):
-    pass
+    """
+    Makes requests until it succeeds
+    :param request:
+    :return:
+    """
+    # Так как в Pixel Api 25% запросов не обрабатываются, если ты не подписчик на патреоне,
+    # Поэтому мы повторяем запрос пока он не будет успешный
+    success = False
+    while not success:
+        with requests.Session() as s:
+            prepare_req = s.prepare_request(request)
+            response = s.send(prepare_req)
+            print(response.json())
+            success = response.json()['isSuccess']
 
 class PixelaUser:
     """Object for working with the user"""
@@ -188,16 +202,13 @@ class PixelaGraph:
         """
         Changes the progress in the pixel graph by user date
         """
-        if user_progress.isdigit():
-            new_score_params = {
-                'date': user_date,
-                'quantity': user_progress,
-            }
-            response = requests.post(url=f"{self.PIXEL_ENDPOINT}/{self.USERNAME}/graphs/{self.GRAPH_NAME}",
-                                     headers=self.HEADERS, json=new_score_params)
-            print(response.)
-        else:
-            raise AttributeError(f'user_progress = "{user_progress}" is not a digit')
+        new_score_params = {
+            'date': user_date,
+            'quantity': user_progress,
+        }
+        response = requests.post(url=f"{self.PIXEL_ENDPOINT}/{self.USERNAME}/graphs/{self.GRAPH_NAME}",
+                                 headers=self.HEADERS, json=new_score_params)
+        print(response.json())
 
     def get_progress(self, user_date: str):
         """Returns the pixel value of the given day"""
