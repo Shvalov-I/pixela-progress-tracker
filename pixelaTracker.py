@@ -114,7 +114,8 @@ class PixelaGraph:
             else:
                 return False
 
-    def create_graph(self, unit:str, type_of_graph: str = 'int', color: str = 'shibafu', time_zone: str = 'Asia/Novosibirsk'):
+    def create_graph(self, unit: str, type_of_graph: str = 'int', color: str = 'shibafu',
+                     time_zone: str = 'Asia/Novosibirsk'):
         """Create new Pixela graph
         :param unit:
         It is a unit of the quantity recorded in the pixelation graph.
@@ -137,18 +138,24 @@ class PixelaGraph:
                 session.add(new_graph)
                 session.commit()
 
-                new_graph_params = {
-                    "id": self.GRAPH_NAME,
-                    "name": self.GRAPH_NAME,
-                    "unit": unit,
-                    "type": type_of_graph,
-                    "color": color,
-                    "timezone": time_zone,
-                }
+            new_graph_params = {
+                "id": self.GRAPH_NAME,
+                "name": self.GRAPH_NAME,
+                "unit": unit,
+                "type": type_of_graph,
+                "color": color,
+                "timezone": time_zone,
+            }
+
+            # Так как в Pixel Api 25% запросов не обрабатываются, если ты не подписчик на патреоне,
+            # Поэтому мы повторяем запрос пока он не будет успешный
+            success = False
+            while not success:
                 response = requests.post(url=f"{self.PIXEL_ENDPOINT}/{self.USERNAME}/graphs",
                                          json=new_graph_params,
                                          headers=self.HEADERS)
                 print(response.json())
+                success = response.json()['isSuccess']
         else:
             raise AttributeError(f'Graph "{self.GRAPH_NAME}" already exists')
 
@@ -163,31 +170,36 @@ class PixelaGraph:
                 deleted_graph = Graphs(graph_name=self.GRAPH_NAME, user_id=user.id)
                 session.delete(deleted_graph)
                 session.commit()
+
+            # Так как в Pixel Api 25% запросов не обрабатываются, если ты не подписчик на патреоне,
+            # Поэтому мы повторяем запрос пока он не будет успешный
+            success = False
+            while not success:
+                response = requests.delete(url=f"{self.PIXEL_ENDPOINT}/{self.USERNAME}/graphs/{self.GRAPH_NAME}",
+                                           headers=self.HEADERS)
+                print(response.json())
+                success = response.json()['isSuccess']
         else:
             raise AttributeError(f'Graph "{self.GRAPH_NAME}" do not exists')
 
-    # def post_progress_pixel(user_date: str = dt.datetime.today().strftime('%Y%m%d')):
-    #     """Asks the value of the user and changes the progress by user date"""
-    #     correct_input = False
-    #     new_score = 0
-    #     while not correct_input:
-    #         try:
-    #             new_score = float(input('Введите на какое значение вы хотите изменить(в часах): '))
-    #         except ValueError:
-    #             print("Вы ввели некорректные данные. Попробуйте ещё раз.")
-    #         else:
-    #             correct_input = True
-    #
-    #     new_score_params = {
-    #         'date': user_date,
-    #         'quantity': str(new_score),
-    #     }
-    #     response = requests.post(f'{PIXEL_ENDPOINT}', headers=HEADERS, json=new_score_params)
-    #
-    # def get_progress_pixel(user_date: str):
-    #     """Returns the pixel value of the given day"""
-    #     response = requests.get(f'{PIXEL_ENDPOINT}/{user_date}', headers=HEADERS)
-    #     return response.json()['quantity']
+    def change_progress_pixel(self, user_date: str = dt.datetime.today().strftime('%Y%m%d')):
+        """
+        Changes the progress in the pixel graph by user date
+        """
+        new_score = 0
+        new_score_params = {
+            'date': user_date,
+            'quantity': str(new_score),
+        }
+        response = requests.post(url=f"{self.PIXEL_ENDPOINT}/{self.USERNAME}/graphs/{self.GRAPH_NAME}",
+                                 headers=self.HEADERS, json=new_score_params)
+        print(response.json())
+
+    def get_progress_pixel(self, user_date: str):
+        """Returns the pixel value of the given day"""
+        response = requests.get(url=f"{self.PIXEL_ENDPOINT}/{self.USERNAME}/graphs/{self.GRAPH_NAME}/{user_date}",
+                                headers=self.HEADERS)
+        return response.json()['quantity']
     #
     # def change_progress_pixel():
     #
