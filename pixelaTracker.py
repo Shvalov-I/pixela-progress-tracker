@@ -6,7 +6,7 @@ import uuid
 from models import Session, Users, Graphs, engine
 
 
-def success_request(request: requests.Request):
+def success_request(request: requests.Request) -> requests.models.Response:
     """
     Makes requests until it succeeds
     :param request:
@@ -16,12 +16,13 @@ def success_request(request: requests.Request):
     # Поэтому мы повторяем запрос пока он не будет успешный
     success = False
     while not success:
-        with requests.Session() as s:
-            prepare_req = s.prepare_request(request)
-            response = s.send(prepare_req)
+        with requests.Session() as session:
+            prepare_req = session.prepare_request(request)
+            response = session.send(prepare_req)
             print(response.json())
             if 'Please retry this request.' not in response.json()['message']:
                 success = True
+    return response
 
 
 class PixelaUser:
@@ -78,8 +79,8 @@ class PixelaUser:
                 "notMinor": "yes",
             }
 
-            response = requests.post(url=self.PIXEL_ENDPOINT, json=new_user_params)
-            print(response.json())
+            req = requests.Request(method="POST", url=self.PIXEL_ENDPOINT, json=new_user_params)
+            success_request(req)
         else:
             raise AttributeError(f'User "{self.USERNAME}" already exists')
 
@@ -96,13 +97,8 @@ class PixelaUser:
             headers = {
                 "X-USER-TOKEN": self.TOKEN,
             }
-            # Так как в Pixel Api 25% запросов не обрабатываются, если ты не подписчик на патреоне,
-            # Поэтому мы повторяем запрос пока он не будет успешный
-            success = False
-            while not success:
-                response = requests.delete(url=f"{self.PIXEL_ENDPOINT}/{self.USERNAME}", headers=headers)
-                print(response.json())
-                success = response.json()['isSuccess']
+            req = requests.Request(method="DELETE", url=f"{self.PIXEL_ENDPOINT}/{self.USERNAME}", headers=headers)
+            success_request(req)
         else:
             raise AttributeError(f'User "{self.USERNAME}" do not exists')
 
@@ -165,15 +161,10 @@ class PixelaGraph:
                 "timezone": time_zone,
             }
 
-            # Так как в Pixel Api 25% запросов не обрабатываются, если ты не подписчик на патреоне,
-            # Поэтому мы повторяем запрос пока он не будет успешный
-            success = False
-            while not success:
-                response = requests.post(url=f"{self.PIXEL_ENDPOINT}/{self.USERNAME}/graphs",
-                                         json=new_graph_params,
-                                         headers=self.HEADERS)
-                print(response.json())
-                success = response.json()['isSuccess']
+            req = requests.Request(method="POST", url=f"{self.PIXEL_ENDPOINT}/{self.USERNAME}/graphs",
+                                   json=new_graph_params,
+                                   headers=self.HEADERS)
+            success_request(req)
         else:
             raise AttributeError(f'Graph "{self.GRAPH_NAME}" already exists')
 
@@ -189,14 +180,10 @@ class PixelaGraph:
                 session.delete(deleted_graph)
                 session.commit()
 
-            # Так как в Pixel Api 25% запросов не обрабатываются, если ты не подписчик на патреоне,
-            # Поэтому мы повторяем запрос пока он не будет успешный
-            success = False
-            while not success:
-                response = requests.delete(url=f"{self.PIXEL_ENDPOINT}/{self.USERNAME}/graphs/{self.GRAPH_NAME}",
-                                           headers=self.HEADERS)
-                print(response.json())
-                success = response.json()['isSuccess']
+            req = requests.Request(method="DELETE",
+                                   url=f"{self.PIXEL_ENDPOINT}/{self.USERNAME}/graphs/{self.GRAPH_NAME}",
+                                   headers=self.HEADERS)
+            success_request(req)
         else:
             raise AttributeError(f'Graph "{self.GRAPH_NAME}" do not exists')
 
@@ -210,14 +197,15 @@ class PixelaGraph:
         }
         req = requests.Request(method="POST", url=f"{self.PIXEL_ENDPOINT}/{self.USERNAME}/graphs/{self.GRAPH_NAME}",
                                headers=self.HEADERS, json=new_score_params)
-        # response = requests.post(url=f"{self.PIXEL_ENDPOINT}/{self.USERNAME}/graphs/{self.GRAPH_NAME}",
-        #                          headers=self.HEADERS, json=new_score_params)
         success_request(req)
 
     def get_progress(self, user_date: str):
         """Returns the pixel value of the given day"""
-        response = requests.get(url=f"{self.PIXEL_ENDPOINT}/{self.USERNAME}/graphs/{self.GRAPH_NAME}/{user_date}",
-                                headers=self.HEADERS)
+        req = requests.Request(method="GET",
+                               url=f"{self.PIXEL_ENDPOINT}/{self.USERNAME}/graphs/{self.GRAPH_NAME}/{user_date}",
+                               headers=self.HEADERS)
+        response = success_request(req)
+        print(response.json())
         user_progress = None
         try:
             user_progress = response.json()['quantity']
@@ -232,7 +220,8 @@ class PixelaGraph:
         new_progress_param = {
             'quantity': str(today_progress),
         }
-        response = requests.put(url=f"{self.PIXEL_ENDPOINT}/{self.USERNAME}/graphs/{self.GRAPH_NAME}/{today}",
-                                headers=self.HEADERS,
-                                json=new_progress_param)
-        print(response.json())
+        req = requests.Request(method="PUT",
+                               url=f"{self.PIXEL_ENDPOINT}/{self.USERNAME}/graphs/{self.GRAPH_NAME}/{today}",
+                               headers=self.HEADERS,
+                               json=new_progress_param)
+        success_request(req)
