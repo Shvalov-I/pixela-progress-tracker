@@ -182,7 +182,7 @@ class PixelaGraph:
         else:
             raise AttributeError(f'Graph "{self.GRAPH_NAME}" do not exists')
 
-    def change_progress_pixel(self, user_date: str = dt.datetime.today().strftime('%Y%m%d')):
+    def change_progress(self, user_date: str = dt.datetime.today().strftime('%Y%m%d')):
         """
         Changes the progress in the pixel graph by user date
         """
@@ -195,44 +195,20 @@ class PixelaGraph:
                                  headers=self.HEADERS, json=new_score_params)
         print(response.json())
 
-    def get_progress_pixel(self, user_date: str):
+    def get_progress(self, user_date: str):
         """Returns the pixel value of the given day"""
         response = requests.get(url=f"{self.PIXEL_ENDPOINT}/{self.USERNAME}/graphs/{self.GRAPH_NAME}/{user_date}",
                                 headers=self.HEADERS)
         return response.json()['quantity']
-    #
-    # def change_progress_pixel():
-    #
-    #     today = dt.datetime.today().strftime('%Y%m%d')
-    #
-    #     yesterday = dt.datetime.today() - dt.timedelta(days=1)
-    #     yesterday = yesterday.strftime('%Y%m%d')
-    #
-    #     day_before_yesterday = dt.datetime.today() - dt.timedelta(days=1)
-    #     day_before_yesterday = day_before_yesterday.strftime('%Y%m%d')
-    #
-    #     user_date_id = None
-    #
-    #     correct_input = False
-    #     while not correct_input:
-    #         try:
-    #             user_date_id = int(input('Введите код дня, который вы хотите изменить '
-    #                                      '(Сегодня - 0, Вчера - 1, Позавчера - 2): '))
-    #             if user_date_id in (0, 1, 2):
-    #                 correct_input = True
-    #             else:
-    #                 print('Вы ввели неправильный индекс дня. Попробуйте ещё раз.')
-    #         except ValueError:
-    #             print('Некорректный ввод. Попробуйте ещё раз.')
-    #
-    #     if user_date_id == 0:
-    #         print(f'Ваш прогресс сегодня составляет {get_progress_pixel(today)}')
-    #         post_progress_pixel(today)
-    #     elif user_date_id == 1:
-    #         print(f'Ваш прогресс вчера составляет {get_progress_pixel(yesterday)}')
-    #         post_progress_pixel(yesterday)
-    #     elif user_date_id == 2:
-    #         print(f'Ваш прогресс позавчера составляет {get_progress_pixel(day_before_yesterday)}')
-    #         post_progress_pixel(day_before_yesterday)
-    #
-    # change_progress_pixel()
+
+    def update_today_progress(self, user_progress):
+        today = dt.datetime.today().strftime('%Y%m%d')
+        today_progress = self.get_progress(today)
+        today_progress += user_progress
+        new_progress_param = {
+            'quantity': str(today_progress),
+        }
+        response = requests.put(url=f"{self.PIXEL_ENDPOINT}/{self.USERNAME}/graphs/{self.GRAPH_NAME}/{today}",
+                                headers=self.HEADERS,
+                                json=new_progress_param)
+        print(response.json())
