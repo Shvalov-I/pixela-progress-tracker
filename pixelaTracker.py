@@ -5,6 +5,8 @@ import datetime as dt
 import uuid
 from models import Session, Users, Graphs, engine
 
+def success_request(request):
+    pass
 
 class PixelaUser:
     """Object for working with the user"""
@@ -182,28 +184,35 @@ class PixelaGraph:
         else:
             raise AttributeError(f'Graph "{self.GRAPH_NAME}" do not exists')
 
-    def change_progress(self, user_date: str = dt.datetime.today().strftime('%Y%m%d')):
+    def change_progress(self, user_progress: float, user_date: str = dt.datetime.today().strftime('%Y%m%d')):
         """
         Changes the progress in the pixel graph by user date
         """
-        new_score = 0
-        new_score_params = {
-            'date': user_date,
-            'quantity': str(new_score),
-        }
-        response = requests.post(url=f"{self.PIXEL_ENDPOINT}/{self.USERNAME}/graphs/{self.GRAPH_NAME}",
-                                 headers=self.HEADERS, json=new_score_params)
-        print(response.json())
+        if user_progress.isdigit():
+            new_score_params = {
+                'date': user_date,
+                'quantity': user_progress,
+            }
+            response = requests.post(url=f"{self.PIXEL_ENDPOINT}/{self.USERNAME}/graphs/{self.GRAPH_NAME}",
+                                     headers=self.HEADERS, json=new_score_params)
+            print(response.)
+        else:
+            raise AttributeError(f'user_progress = "{user_progress}" is not a digit')
 
     def get_progress(self, user_date: str):
         """Returns the pixel value of the given day"""
         response = requests.get(url=f"{self.PIXEL_ENDPOINT}/{self.USERNAME}/graphs/{self.GRAPH_NAME}/{user_date}",
                                 headers=self.HEADERS)
-        return response.json()['quantity']
+        user_progress = None
+        try:
+            user_progress = response.json()['quantity']
+        except KeyError:
+            user_progress = 0
+        return user_progress
 
-    def update_today_progress(self, user_progress):
+    def update_today_progress(self, user_progress: float):
         today = dt.datetime.today().strftime('%Y%m%d')
-        today_progress = self.get_progress(today)
+        today_progress = float(self.get_progress(today))
         today_progress += user_progress
         new_progress_param = {
             'quantity': str(today_progress),
