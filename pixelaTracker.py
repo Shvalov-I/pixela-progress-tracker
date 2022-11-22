@@ -17,7 +17,7 @@ def success_request(request: requests.Request) -> requests.models.Response:
         with requests.Session() as session:
             prepare_req = session.prepare_request(request)
             response = session.send(prepare_req)
-            # Если в ответе нет просьбы повторить запрос ещё раз, значит запрос успешный
+            # Если в ответе нет просьбы повторить запрос ещё раз, значит запрос больше не повторяется
             try:
                 if 'Please retry this request.' not in response.json()['message']:
                     success = True
@@ -32,12 +32,12 @@ class PixelaUser:
 
     def __init__(self, username: str):
         self.USERNAME = username
-        if self.is_exists():
+        if self.is_user_exists():
             self.TOKEN = self.get_token()
         else:
             self.TOKEN = None
 
-    def is_exists(self):
+    def is_user_exists(self):
         """
         Checking if the user exists
         :return:
@@ -54,7 +54,7 @@ class PixelaUser:
         Returns the user's token or throws an error if the user does not exist.
         :return:
         """
-        if self.is_exists():
+        if self.is_user_exists():
             with Session(engine) as session, session.begin():
                 user = session.query(Users).filter(Users.username == self.USERNAME).first()
                 return user.token
@@ -66,7 +66,7 @@ class PixelaUser:
         Creates a new user or throws an error if such a user already exists
         :return:
         """
-        if not self.is_exists():
+        if not self.is_user_exists():
             self.TOKEN = str(uuid.uuid4())
             with Session(engine) as session, session.begin():
                 new_user = Users(username=self.USERNAME, token=self.TOKEN)
@@ -90,7 +90,7 @@ class PixelaUser:
         Deletes the user or throws an error if the user does not exist
         :return:
         """
-        if self.is_exists():
+        if self.is_user_exists():
             with Session(engine) as session, session.begin():
                 deleted_user = session.query(Users).filter(Users.username == self.USERNAME).first()
                 session.delete(deleted_user)
@@ -201,7 +201,9 @@ class PixelaGraph:
         success_request(req)
 
     def get_progress(self, user_date: str = dt.datetime.today().strftime('%Y%m%d')):
-        """Returns the pixel value of the given day"""
+        """
+        Returns the pixel value of the given day
+        """
         req = requests.Request(method="GET",
                                url=f"{self.PIXEL_ENDPOINT}/{self.USERNAME}/graphs/{self.GRAPH_NAME}/{user_date}",
                                headers=self.HEADERS)
@@ -211,13 +213,18 @@ class PixelaGraph:
         try:
             user_progress = response.json()['quantity']
         except KeyError:
-            user_progress = 0
+            user_progress = "0"
         return user_progress
 
-    def update_today_progress(self, user_progress: float):
+    def update_today_progress(self, user_progress: str):
+        """
+        Update today progress
+        :param user_progress:
+        :return:
+        """
         today = dt.datetime.today().strftime('%Y%m%d')
         today_progress = float(self.get_progress(today))
-        today_progress += user_progress
+        today_progress += float(user_progress)
         new_progress_param = {
             'quantity': str(today_progress),
         }
